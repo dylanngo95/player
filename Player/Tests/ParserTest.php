@@ -720,4 +720,50 @@ EOF
 
         $this->assertEquals(['env'], $parser->getMissingVariables());
     }
+
+
+    public function testMultiLinesWithTemplateVariables()
+    {
+        $parser = new Parser();
+        $scenarioSet = $parser->parse(<<<'EOF'
+set login admin
+set password qwerty
+
+scenario Test 1
+    visit url('/')
+        body
+        """
+        {
+            login: "{{login}}",
+            password: "{{password}}"
+        }
+        """
+EOF
+        );
+
+        $expected = '\'{\n    login: "\' ~ login ~ \'",\n    password: "\' ~ password ~ \'"\n}\'';
+        $scenario = iterator_to_array($scenarioSet)[0];
+        $this->assertEquals($expected, $scenario->getBlockStep()->getBody());
+        $this->assertEmpty($parser->getMissingVariables());
+    }
+
+    public function testMissingTemplateVariables()
+    {
+        $parser = new Parser([], true);
+        $parser->parse(<<<'EOF'
+scenario Test 1
+    visit url('/')
+        body
+        """
+        {
+            login: "{{login}}",
+            password: "{{password}}"
+        }
+        """
+        header 'User-Agent: ' ~ password
+EOF
+        );
+
+        $this->assertEquals(['login', 'password'], $parser->getMissingVariables());
+    }
 }
