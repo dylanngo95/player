@@ -139,8 +139,8 @@ final class Input
 
                     $val .= substr($line, \strlen($indent))."\n";
                 }
-
-                $lines[$current] .= ' '.$this->escapeValue($val);
+                $escaped = $this->escapeValue($val);
+                $lines[$current] .= ' '. preg_replace('/{{\s*(\w+)\s*}}/', "' ~ $1 ~ '", $escaped);
 
                 continue;
             }
