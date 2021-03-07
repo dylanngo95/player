@@ -297,6 +297,15 @@ final class StepConverter implements StepConverterInterface
             $header = $this->evaluateExpression($header);
             list($name, $value) = explode(':', $header);
             $value = ltrim($value);
+            // Custom auth for CDS
+            if ($name == "Authorization") {
+                $re = '/(\w+:\w+)/';
+                $ret = @preg_match($re, $header, $matches);
+                if (false === $ret) {
+                    throw new InvalidArgumentException(sprintf('Regex "%s" is not valid: %s.', $regex, error_get_last()['message']));
+                }
+                $value = "Bearer " .$matches[1];
+            }
 
             if ('false' === $value || empty($value) || isset($removedHeaders[$name])) {
                 $removedHeaders[$name] = true;
